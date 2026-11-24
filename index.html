@@ -1,0 +1,933 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Visual summary of the ExileCon 2026 talk on how Path of Exile 2's Duelist and Shadow classes were designed.">
+<meta property="og:title" content="Duelist &amp; Shadow Debrief">
+<meta property="og:description" content="Visual summary of the ExileCon 2026 talk on how Path of Exile 2's Duelist and Shadow classes were designed.">
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Duelist & Shadow Debrief</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600&family=JetBrains+Mono:wght@400;600&family=Orbitron:wght@600;800&family=Rajdhani:wght@500;600&display=swap">
+<style>
+/* Layout: HUD header with key numbers, VS Code-style tabs (Overview / Shadow / Duelist / Q&A), one framed panel per idea, detail collapsed */
+:root {
+  --bg: #000; --panel: rgba(0, 3, 7, .97); --raised: rgba(0, 240, 255, .12); --border: rgba(0, 240, 255, .8); --border-soft: rgba(0, 240, 255, .32); --border-h: #6ffcff;
+  --fg: #d3e4ea; --muted: #9fb9c4; --kw: #00f0ff; --link: #8ffcff; --type: #a8faff; --num: #ffe58f;
+  --ok: #4dff88; --done: #5f7884; --glow: 0, 240, 255;
+  --shadow-c: #00f0ff; --duel-c: #ffe58f; --qa-c: #5f7884;
+  --mono: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+  --sans: "Rajdhani", "Segoe UI", system-ui, sans-serif;
+  --display: "Orbitron", "JetBrains Mono", sans-serif;
+  --item: "Chakra Petch", "Rajdhani", "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+html, body { overflow-x: hidden; }
+body { background: var(--bg); color: var(--fg); font: 500 16px/1.45 var(--sans); }
+body::before { content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(rgba(var(--glow), .16) 1px, transparent 1.3px) 0 0 / 26px 26px,
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0, 240, 255, .14), transparent 70%), var(--bg); }
+#vecFx { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 8%, rgba(0,0,0,.4) 24%, rgba(0,0,0,.1) 40%, rgba(0,0,0,.1) 60%, rgba(0,0,0,.4) 76%, #000 92%, #000 100%);
+  mask-image: linear-gradient(90deg, #000 0%, #000 8%, rgba(0,0,0,.4) 24%, rgba(0,0,0,.1) 40%, rgba(0,0,0,.1) 60%, rgba(0,0,0,.4) 76%, #000 92%, #000 100%); }
+.wrap { position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; padding-block: 22px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 16px; }
+@media (max-width: 640px) { .wrap { padding-left: max(22px, 6vw, env(safe-area-inset-left, 0px)); padding-right: max(22px, 6vw, env(safe-area-inset-right, 0px)); } }
+a { color: var(--link); }
+a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--border-h); outline-offset: 2px; }
+
+/* header */
+.top { display: flex; flex-direction: column; gap: 6px; }
+.eyebrow { font: 600 11px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+h1 { font: 800 clamp(20px, 4.4vw, 32px)/1.15 var(--display); letter-spacing: .1em; text-transform: uppercase; margin: 0; color: #dcecf1; text-shadow: 0 0 14px rgba(var(--glow), .55); text-wrap: balance; }
+h1 .kw { color: var(--kw); }
+.sub { margin: 0; color: var(--muted); max-width: 68ch; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.tile { border: 1.5px solid var(--border); background: var(--panel); padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tile .lbl { font: 600 10.5px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.tile .val { display: flex; align-items: baseline; gap: 6px; }
+.tile b { font: 600 26px/1.1 var(--mono); color: var(--num); font-variant-numeric: tabular-nums; }
+.tile .unit { font: 13px var(--mono); color: var(--muted); }
+
+/* tabs */
+.tabs { display: flex; gap: 2px; border-bottom: 1.5px solid var(--border); overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { flex: none; font: 600 11px var(--display); letter-spacing: .12em; text-transform: uppercase; background: transparent; color: var(--muted); border: 0; border-top: 2px solid transparent; padding: 10px 16px; cursor: pointer; }
+.tab:hover { color: var(--fg); background: rgba(var(--glow), .05); }
+.tab[aria-selected="true"] { background: rgba(var(--glow), .10); border-top-color: var(--kw); color: var(--kw); }
+.tabpanel { display: flex; flex-direction: column; gap: 16px; }
+
+/* panels */
+.panel { position: relative; border: 1.5px solid var(--border); background: var(--panel); padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.panel::before, .panel::after { content: ""; position: absolute; width: 12px; height: 12px; pointer-events: none; border: 2px solid var(--border-h); }
+.panel::before { left: -4px; top: -4px; border-right: 0; border-bottom: 0; }
+.panel::after { right: -4px; bottom: -4px; border-left: 0; border-top: 0; }
+h2 { font: 600 13px var(--display); letter-spacing: .14em; text-transform: uppercase; color: var(--kw); margin: 0; text-wrap: balance; }
+h3 { font: 600 15px var(--item); color: #dcecf1; margin: 0; }
+.note { margin: 0; color: var(--muted); font-size: 14.5px; max-width: 72ch; }
+ul.pts { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; max-width: 76ch; }
+ul.pts li::marker { color: var(--kw); }
+ul.pts b, .cmp b, .qa b { color: #f1fbfd; font-weight: 600; }
+.ts { font: 12px var(--mono); color: var(--link); text-decoration: none; white-space: nowrap; }
+.ts:hover { text-decoration: underline; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.sub-box { border: 1px solid var(--border-soft); padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+
+/* collapsed detail */
+details.more { border-top: 1px solid var(--border-soft); padding-top: 8px; }
+details.more > summary { cursor: pointer; font: 600 11.5px var(--mono); color: var(--muted); letter-spacing: .06em; text-transform: uppercase; list-style: none; padding: 3px 0; width: fit-content; }
+details.more > summary::-webkit-details-marker { display: none; }
+details.more > summary::before { content: "▸ "; color: var(--kw); }
+details.more[open] > summary::before { content: "▾ "; }
+details.more > summary:hover { color: var(--fg); }
+details.more > .body { display: flex; flex-direction: column; gap: 10px; padding-top: 8px; }
+
+/* timeline chart */
+.tl-groups, .tl { display: flex; }
+.tl-groups span { min-width: 0; font: 600 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; padding-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tl-groups i { font-style: normal; color: var(--muted); }
+.tl { height: 46px; border: 1px solid var(--border-soft); }
+.seg { min-width: 0; border-right: 2px solid #000; opacity: .82; transition: opacity .15s, transform .15s; }
+.seg:last-child { border-right: 0; }
+.seg:hover, .seg:focus-visible { opacity: 1; transform: scaleY(1.12); }
+.g-shadow { background: var(--shadow-c); } .g-duel { background: var(--duel-c); } .g-qa { background: var(--qa-c); }
+.c-shadow { color: var(--shadow-c); } .c-duel { color: var(--duel-c); } .c-qa { color: #9fb9c4; }
+.tl-axis { position: relative; height: 20px; font: 11px var(--mono); color: var(--muted); }
+.tl-axis span { position: absolute; top: 4px; transform: translateX(-50%); }
+.tl-axis span::before { content: ""; position: absolute; left: 50%; top: -4px; width: 1px; height: 4px; background: var(--muted); }
+.tl-axis span:first-child { transform: none; } .tl-axis span:first-child::before { left: 0; }
+.tl-read { font: 12.5px var(--mono); color: var(--muted); min-height: 1.5em; margin: 0; }
+.chap { display: grid; grid-template-columns: 52px minmax(0, 1.2fr) minmax(60px, 1fr) 44px; gap: 4px 10px; align-items: center; font-size: 14.5px; }
+.chap .bar { height: 10px; background: rgba(var(--glow), .08); }
+.chap .bar i { display: block; height: 100%; }
+.chap .m { font: 12px var(--mono); color: var(--num); text-align: right; font-variant-numeric: tabular-nums; }
+
+/* flow diagrams */
+.flow { display: flex; gap: 6px; align-items: stretch; }
+.node { flex: 1 1 0; min-width: 0; border: 1px solid var(--border); background: var(--raised); padding: 8px 10px; display: flex; flex-direction: column; gap: 3px; }
+.node .n { font: 600 12px var(--mono); color: var(--kw); letter-spacing: .04em; text-transform: uppercase; overflow-wrap: anywhere; }
+.node .d { font-size: 14px; line-height: 1.3; color: var(--fg); }
+.node.alt { border-style: dashed; background: transparent; }
+.arr { flex: none; align-self: center; font: 14px var(--mono); color: var(--kw); }
+.arr::before { content: "▸"; }
+.loop { font: 12.5px var(--mono); color: var(--muted); margin: 0; }
+.loop b { color: var(--kw); font-weight: 600; }
+@media (max-width: 760px) { .flow { flex-direction: column; } .arr::before { content: "▾"; } }
+
+/* rage / darkness shared bar */
+.duo { display: flex; height: 26px; border: 1px solid var(--border-soft); font: 600 11px var(--mono); letter-spacing: .08em; }
+.duo span { display: flex; align-items: center; padding: 0 8px; min-width: 0; white-space: nowrap; }
+.duo .rage { flex: 4; background: #2c3b42; color: #d3e4ea; }
+.duo .gap { flex: 2; }
+.duo .dark { flex: 4; background: rgba(var(--glow), .78); color: #001316; justify-content: flex-end; }
+
+/* tables */
+.tbl { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+th, td { text-align: left; vertical-align: top; padding: 7px 10px; border-bottom: 1px solid var(--border-soft); }
+th { font: 600 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+td:first-child { font: 600 12px var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+
+/* idea status list */
+.ideas { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.ideas li { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; align-items: baseline; }
+.chip { font: 600 10.5px var(--mono); letter-spacing: .08em; text-transform: uppercase; text-align: center; padding: 2px 6px; border: 1px solid; }
+.chip.evo { color: var(--ok); } .chip.shelf { color: #2fa8c4; border-style: dashed; } .chip.cut { color: var(--done); } .chip.kept { color: var(--kw); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font: 12px var(--mono); color: var(--muted); align-items: center; }
+.qa { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; max-width: 80ch; }
+.qa li { display: flex; flex-direction: column; gap: 2px; padding-bottom: 10px; border-bottom: 1px solid var(--border-soft); }
+.qa li:last-child { border-bottom: 0; padding-bottom: 0; }
+.qa .q { font: 600 15px var(--item); color: #dcecf1; }
+.foot { font: 12px var(--mono); color: var(--muted); margin: 0; }
+
+/* ---- build-up intro and open/close transitions (Interfierce HUD scaffold) ---- */
+:root.building .wrap { visibility: hidden; }
+.bld { animation-duration: .5s; animation-fill-mode: both; animation-timing-function: cubic-bezier(.2, .7, .2, 1); }
+.b-frame { animation-name: bframe; animation-duration: .65s; }
+@keyframes bframe { 0% { opacity: 0; filter: brightness(2.2) saturate(.5); } 22% { opacity: .65; } 32% { opacity: .15; } 50% { opacity: .9; } 60% { opacity: .5; } 100% { opacity: 1; filter: none; } }
+.b-type { animation-name: btype; animation-timing-function: steps(12, end); animation-duration: .38s; }
+@keyframes btype { 0% { opacity: 1; clip-path: inset(0 100% 0 0); } 100% { opacity: 1; clip-path: inset(0 0 0 0); } }
+.b-pop { animation-name: bpop; animation-duration: .35s; }
+@keyframes bpop { 0% { opacity: 0; transform: scale(.6); filter: brightness(2.5); } 70% { opacity: 1; transform: scale(1.06); } 100% { opacity: 1; transform: none; filter: none; } }
+.b-fade { animation-name: bfade; animation-duration: .7s; }
+@keyframes bfade { 0% { opacity: 0; filter: brightness(2.4) blur(5px); } 100% { opacity: 1; filter: none; } }
+#wires { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 75; pointer-events: none; }
+.wb { position: absolute; animation: wbout .45s ease-out both; animation-delay: calc(var(--d) + var(--t) + 220ms); }
+@keyframes wbout { to { opacity: 0; } }
+.wb i { position: absolute; background: rgb(var(--glow)); box-shadow: 0 0 5px rgba(var(--glow), .95), 0 0 14px rgba(var(--glow), .5);
+  animation-duration: calc(var(--t) * .25); animation-timing-function: cubic-bezier(.5, 0, .3, 1); animation-fill-mode: both; }
+.wb i:nth-child(1) { left: 0; top: 0; width: 100%; height: 1px; transform-origin: left; animation-name: wx; animation-delay: var(--d); }
+.wb i:nth-child(2) { right: 0; top: 0; width: 1px; height: 100%; transform-origin: top; animation-name: wy; animation-delay: calc(var(--d) + var(--t) * .25); }
+.wb i:nth-child(3) { left: 0; bottom: 0; width: 100%; height: 1px; transform-origin: right; animation-name: wx; animation-delay: calc(var(--d) + var(--t) * .5); }
+.wb i:nth-child(4) { left: 0; top: 0; width: 1px; height: 100%; transform-origin: bottom; animation-name: wy; animation-delay: calc(var(--d) + var(--t) * .75); }
+@keyframes wx { from { transform: scaleX(0); background: #fff; } }
+@keyframes wy { from { transform: scaleY(0); background: #fff; } }
+.b-out { animation: bout .3s ease-in both !important; }
+@keyframes bout { 0% { opacity: 1; } 18% { opacity: .9; filter: brightness(2.4); } 30% { opacity: .35; } 42% { opacity: .8; } 100% { opacity: 0; clip-path: inset(0 0 0 100%); filter: brightness(1.6); } }
+.wb.rev { opacity: 0; animation: wbshow .01s linear forwards; animation-delay: var(--d); }
+@keyframes wbshow { to { opacity: 1; } }
+.wb.rev i { animation-duration: calc(var(--t) * .25); animation-timing-function: cubic-bezier(.5, 0, .3, 1); animation-fill-mode: both; }
+.wb.rev i:nth-child(4) { animation-name: wyo; animation-delay: calc(var(--d) + 40ms); }
+.wb.rev i:nth-child(3) { animation-name: wxo; animation-delay: calc(var(--d) + 40ms + var(--t) * .25); }
+.wb.rev i:nth-child(2) { animation-name: wyo; animation-delay: calc(var(--d) + 40ms + var(--t) * .5); }
+.wb.rev i:nth-child(1) { animation-name: wxo; animation-delay: calc(var(--d) + 40ms + var(--t) * .75); }
+@keyframes wxo { to { transform: scaleX(0); background: #fff; } }
+@keyframes wyo { to { transform: scaleY(0); background: #fff; } }
+.evap { position: absolute; left: 0; top: 0; overflow: hidden; z-index: 76; pointer-events: none; }
+.evap i { position: absolute; left: 0; top: 0; border-radius: 50%; background: rgb(var(--glow)); box-shadow: 0 0 6px rgb(var(--glow)), 0 0 14px rgba(var(--glow), .5); }
+.evap b { position: absolute; left: 0; height: 2px; background: linear-gradient(90deg, transparent, rgb(var(--glow)) 12%, #fff 50%, rgb(var(--glow)) 88%, transparent);
+  box-shadow: 0 0 10px rgba(var(--glow), .9), 0 0 26px rgba(var(--glow), .5); }
+.pend { visibility: hidden; }
+@media (prefers-reduced-motion: reduce) { .seg { transition: none; } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <span class="eyebrow">ExileCon 2026 · Path of Exile 2 · design talk</span>
+    <h1>Developing the <span class="kw">Duelist</span> and <span class="kw">Shadow</span></h1>
+    <p class="sub">Designers James Woodmansey (Shadow lead) and Kevin Readen (Duelist lead) explain how the two classes coming with PoE2's full release were built, what got cut, and why. Q&amp;A hosted by David Lane. <a href="https://www.youtube.com/watch?v=e9-IgmB8glc">Watch the talk</a></p>
+  </header>
+
+  <div class="tiles">
+    <div class="tile"><span class="lbl">Runtime</span><span class="val"><b data-n="81">81</b><span class="unit">min</span></span></div>
+    <div class="tile"><span class="lbl">Classes covered</span><span class="val"><b data-n="2">2</b><span class="unit">+2 to come</span></span></div>
+    <div class="tile"><span class="lbl">Active dev per class</span><span class="val"><b>4–12</b><span class="unit">months</span></span></div>
+    <div class="tile"><span class="lbl">Blade Vortex blades</span><span class="val"><b data-n="50">50</b><span class="unit">independent</span></span></div>
+    <div class="tile"><span class="lbl">Boss stealth window</span><span class="val"><b>2–3</b><span class="unit">sec</span></span></div>
+  </div>
+
+  <div class="tabs" id="tabs" role="tablist">
+    <button class="tab" role="tab" id="t-over" aria-controls="p-over" aria-selected="true">Overview</button>
+    <button class="tab" role="tab" id="t-shadow" aria-controls="p-shadow" aria-selected="false">Shadow</button>
+    <button class="tab" role="tab" id="t-duel" aria-controls="p-duel" aria-selected="false">Duelist</button>
+    <button class="tab" role="tab" id="t-qa" aria-controls="p-qa" aria-selected="false">Q&amp;A</button>
+  </div>
+
+  <!-- ================= OVERVIEW ================= -->
+  <section class="tabpanel" id="p-over" role="tabpanel" aria-labelledby="t-over">
+    <div class="panel">
+      <h2>The short version</h2>
+      <ul class="pts">
+        <li><b>Shadow is built around stealth you can enter at any time.</b> Shroud, the first skill you get, has no conditions and its cooldown resets on kill.</li>
+        <li><b>Stealth has no speed penalty.</b> You run, dodge roll and sprint at full speed. Each monster shows a detection cone, and you are spotted faster the closer you are.</li>
+        <li><b>Traps arrive as a weapon type.</b> They cannot trigger while you are stealthed, so you stack several and they all fire the moment you break stealth.</li>
+        <li><b>Bosses see the whole arena unless blinded.</b> Boss stealth comes in windows of a few seconds, with a blind-immunity gap between them.</li>
+        <li><b>Duelist brings swords and "ready stance".</b> Hold a skill to enter a stance that upgrades your next skill. Blood stance and sand stance are stronger versions.</li>
+        <li><b>Neither class is "true melee".</b> Duelist gets medium-range skills tied to the sword. Shadow closes distance with dashes on every dagger attack.</li>
+        <li><b>Still to come:</b> Templar (aimed at a battle mage) and Marauder (rage, berserking, thrown axes).</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h2>Where the 81 minutes go</h2>
+      <div>
+        <div class="tl-groups" id="tlGroups"></div>
+        <div class="tl" id="tl"></div>
+        <div class="tl-axis" id="tlAxis"></div>
+      </div>
+      <p class="tl-read" id="tlRead">Each block is a chapter. Hover to see it, select to open the video at that point.</p>
+      <details class="more">
+        <summary>All 19 chapters with lengths</summary>
+        <div class="body"><div class="chap" id="chap"></div></div>
+      </details>
+    </div>
+
+    <div class="panel">
+      <h2>The two classes side by side</h2>
+      <div class="tbl">
+        <table class="cmp">
+          <thead><tr><th></th><th class="c-shadow">Shadow</th><th class="c-duel">Duelist</th></tr></thead>
+          <tbody>
+            <tr><td>Lead</td><td>James Woodmansey</td><td>Kevin Readen</td></tr>
+            <tr><td>Weapons</td><td>Daggers and traps</td><td>Swords (one-hand, dual, two-hand, sword and shield)</td></tr>
+            <tr><td>Fantasy</td><td>Assassin: sneaky, underhanded, darts in and out. "Higher highs, lower lows."</td><td>Flowing, grounded swordplay with limited elemental effects</td></tr>
+            <tr><td>First skill</td><td><b>Shroud</b>: enter stealth, blind nearby enemies</td><td><b>Bloodied Blade</b>: spinning slashes, hold to enter ready stance</td></tr>
+            <tr><td>Core mechanic</td><td>Stealth</td><td>Ready stance (blood and sand variants)</td></tr>
+            <tr><td>Also uses</td><td>Shades, darkness, impale, traps, blind, poison</td><td>Parry, bleed, buried blades, frenzy charges, Cyclone</td></tr>
+            <tr><td>Range answer</td><td>Every dagger attack dashes when used from stealth</td><td>Short to medium range effects projected from the sword</td></tr>
+            <tr><td>How it went</td><td>Quick. "Things kind of just worked out."</td><td>Stop-start, with long internal debates about what melee means</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Read these with care</h2>
+      <ul class="pts">
+        <li><b>The sand-disc boss build will not ship this strong.</b> Kevin called it the best boss damage shown, then said it is "definitely going to be nerfed before 1.0".</li>
+        <li><b>Shades do not literally double or triple your attack.</b> They copy stealth attacks with a damage penalty.</li>
+        <li><b>Poison skills exist but were left out</b> because details are not final. Tooltips shown are also subject to change.</li>
+      </ul>
+      <details class="more">
+        <summary>About this summary</summary>
+        <div class="body">
+          <p class="note">Built from YouTube's auto-generated captions, so a few skill names may be misspelled (for example the earth skill that makes buried blades, and "Kalguuran"). Chapter names and times are YouTube's. Everything describes a pre-release build.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- ================= SHADOW ================= -->
+  <section class="tabpanel" id="p-shadow" role="tabpanel" aria-labelledby="t-shadow" hidden>
+    <div class="panel">
+      <h2>The stealth loop</h2>
+      <div class="flow">
+        <div class="node"><span class="n">1 · Shroud</span><span class="d">Enter stealth instantly. Blinds enemies and leaves a shade.</span></div>
+        <span class="arr" aria-hidden="true"></span>
+        <div class="node"><span class="n">2 · Set up</span><span class="d">Throw traps (they wait), move at full speed, stay out of detection cones.</span></div>
+        <span class="arr" aria-hidden="true"></span>
+        <div class="node"><span class="n">3 · Strike</span><span class="d">Dagger attack dashes in. Shades copy it. Darkness adds damage.</span></div>
+        <span class="arr" aria-hidden="true"></span>
+        <div class="node"><span class="n">4 · Detonate</span><span class="d">Stealth breaks and every stacked trap fires in the order thrown.</span></div>
+        <span class="arr" aria-hidden="true"></span>
+        <div class="node"><span class="n">5 · Reset</span><span class="d">A kill resets Shroud's cooldown.</span></div>
+      </div>
+      <p class="loop"><b>↺</b> Wipe the pack and you loop back to step 1. Fail and Shroud stays on cooldown, which is the punishment.</p>
+      <div class="two">
+        <div class="sub-box">
+          <h3>Breaks stealth</h3>
+          <ul class="pts">
+            <li>Using or triggering a skill</li>
+            <li>Hitting an enemy, or being hit</li>
+            <li>Your minions hitting an enemy</li>
+            <li>Touching a monster's detection cone</li>
+          </ul>
+        </div>
+        <div class="sub-box">
+          <h3>Does not break stealth</h3>
+          <ul class="pts">
+            <li>Throwing traps</li>
+            <li>"Ethereal" chaos skills such as Ethereal Knives</li>
+            <li>Hits from skills you used before entering stealth</li>
+            <li>Damage in the first half second or so (grace period)</li>
+          </ul>
+        </div>
+      </div>
+      <details class="more">
+        <summary>How stealth was designed <a class="ts" href="https://www.youtube.com/watch?v=e9-IgmB8glc&t=152s">2:32</a></summary>
+        <div class="body">
+          <ul class="pts">
+            <li>Stealth, daggers and traps were the three things always planned for Shadow. Stealth was on the design doc before James joined seven years ago.</li>
+            <li>Classic stealth-game rules were ruled out: no crouch-walking, no patrol routes, no per-skill noise or monster intelligence levels. Stealth is one part of the game, and the magic theme justifies simple rules.</li>
+            <li>Sight cones and a player-centred detection circle were tried. The final version is a visible range around each monster.</li>
+            <li>The cone started as a timer display. While nerfing stealth, the team made touching the cone the thing that detects you.</li>
+            <li>Darkening the whole screen made night areas unreadable, so the screen is brightened inside detection ranges with a brighter ring on the edge.</li>
+          </ul>
+        </div>
+      </details>
+      <details class="more">
+        <summary>Why Shroud has no conditions <a class="ts" href="https://www.youtube.com/watch?v=e9-IgmB8glc&t=360s">6:00</a></summary>
+        <div class="body">
+          <ul class="pts">
+            <li>Early versions gated stealth behind distance from monsters or a long cooldown. Conditional stealth was confusing and cooldown gating was frustrating.</li>
+            <li>Now you can always enter stealth. If you get detected, the reason is clear, and larger detection ranges teach you not to Shroud into the middle of a pack.</li>
+            <li>The cooldown resets on kill so hit-and-run works, but you cannot spam it on bosses.</li>
+            <li>Shroud is the first skill so no player can miss the class's core mechanic. Its working name was Smoke Bomb.</li>
+            <li>James named removing the cooldown and conditions as the moment Shadow became fun.</li>
+          </ul>
+        </div>
+      </details>
+      <details class="more">
+        <summary>Blind and boss fights <a class="ts" href="https://www.youtube.com/watch?v=e9-IgmB8glc&t=460s">7:40</a></summary>
+        <div class="body">
+          <ul class="pts">
+            <li>Blinded enemies have a smaller detection range. Because players can shrink ranges, base ranges can be set higher, which keeps permanent stealth in check.</li>
+            <li>Any boss with an arena sees you everywhere in it unless it is blinded. You make your own short windows by blinding it.</li>
+            <li>If an enemy kills a shade it loses blind.</li>
+            <li>Bosses do not stand idle while you are stealthed. They lash out, and being hit breaks stealth.</li>
+            <li>From the Q&amp;A: bosses also get a window of blind immunity, so a party cannot keep one member stealthed forever.</li>
+          </ul>
+        </div>
+      </details>
+      <details class="more">
+        <summary>Five problems stealth caused, and the fixes <a class="ts" href="https://www.youtube.com/watch?v=e9-IgmB8glc&t=550s">9:10</a></summary>
+        <div class="body">
+          <div class="tbl"><table>
+            <thead><tr><th>Problem</th><th>Fix</th></tr></thead>
+            <tbody>
+              <tr><td>Melee range</td><td>You cannot walk up to enemies unseen, so every dagger attack dashes from stealth, including the basic attack.</td></tr>
+              <tr><td>Delayed hits</td><td>Each skill's use time is tracked. Only skills used after entering stealth can break it. A half-second grace period covers the rest.</td></tr>
+              <tr><td>Safe kills</td><td>Skills that kill without breaking stealth would win the game, so those skills are "ethereal" chaos damage that enemies do not notice.</td></tr>
+              <tr><td>Cooldowns</td><td>Waiting in stealth for cooldowns was dull, so no cooldown recovers while stealthed.</td></tr>
+              <tr><td>Wandering</td><td>Idle monsters wandered too much and ruined ambushes. Wandering was cut back and reused for a "high alert" search state.</td></tr>
+            </tbody>
+          </table></div>
+          <p class="note">Can you just run past everything? Yes, but there is no hard block. Detection ranges are high, detours are long, and you give up drops and XP for a little safety.</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="panel">
+      <h2>Traps</h2>
+      <ul class="pts">
+        <li><b>A weapon type, not a modifier.</b> Unlike PoE1 you cannot mix trap behaviour onto other skills. Traps deal normal attack damage.</li>
+        <li><b>Fast to throw, limited by cooldowns</b> and a placement cap shared across all trap skills.</li>
+        <li><b>Held while stealthed.</b> They fire together when stealth breaks, which gives the "alpha strike" of five or six skills landing at once.</li>
+        <li><b>Entering stealth refunds one cooldown use</b> on every trap, since cooldowns do not recover in stealth.</li>
+      </ul>
+      <details class="more">
+        <summary>More trap details <a class="ts" href="https://www.youtube.com/watch?v=e9-IgmB8glc&t=840s">14:00</a></summary>
+        <div class="body">
+          <ul class="pts">
+            <li>Shrapnel Trap stands in for a basic attack. It is physical and applies impale.</li>
+            <li>A trap exploding is now a real triggered skill, which removes the old double meaning of "trigger".</li>
+            <li>Trigger radius and arming time are generous by default so traps feel good without investment.</li>
+            <li>Cooldowns push you to carry several trap types, and the team mapped combos between them in many orders.</li>
+            <li>When stealth breaks, every trap fires even if the first one kills the target. Leaving the rest unfired felt like a bug.</li>
+            <li>You can ignore stealth and throw traps like grenades, or stay stealthed and detonate them yourself for bonus damage and area.</li>
+          </ul>
+        </div>
+      </details>
+    </div>
+
+    <div class="panel">
+      <h2>Shades, darkness and impale</h2>
+      <div class="two">
+        <div class="sub-box">
+          <h3>Shades</h3>
+          <ul class="pts">
+            <li>Decoy and shadow clone in one. They do not attack alone.</li>
+            <li>They copy your melee attacks made from stealth, at a damage penalty.</li>
+            <li>The damage counts as yours, so all your stats apply.</li>
+          </ul>
+        </div>
+        <div class="sub-box">
+          <h3>Darkness</h3>
+          <ul class="pts">
+            <li>A resource you build, then spend on stealth attacks for bonus damage.</li>
+            <li>Replaced a flat stealth damage bonus that was too strong and gave nothing to invest in.</li>
+            <li>Shares the rage bar, filling from the opposite end.</li>
+          </ul>
+          <div class="duo" role="img" aria-label="One bar: rage fills from the left, darkness fills from the right, so you cannot max both">
+            <span class="rage">RAGE ▸</span><span class="gap"></span><span class="dark">◂ DARKNESS</span>
+          </div>
+        </div>
+      </div>
+      <h3>Impale upgrades</h3>
+      <div class="tbl"><table>
+        <thead><tr><th>Impale type</th><th>How you get it</th><th>What it adds</th></tr></thead>
+        <tbody>
+          <tr><td>Poisoned</td><td>Extract impale from a poisoned enemy</td><td>A physical nova</td></tr>
+          <tr><td>Electrified</td><td>Electrify an impale</td><td>Lightning damage and electrocute</td></tr>
+          <tr><td>Spectral</td><td>Skills like Ethereal Knives</td><td>Chaos damage</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note">All three explode when extracted and the explosion also hits the original target. Existing impale sources now apply many more stacks, and the passive tree gained impale options.</p>
+      <details class="more">
+        <summary>More on shades <a class="ts" href="https://www.youtube.com/watch?v=e9-IgmB8glc&t=1076s">17:56</a></summary>
+        <div class="body">
+          <ul class="pts">
+            <li>Enemies run at a shade to attack it. That is a deliberate nerf to stealth, because they are likely to spot you on the way.</li>
+            <li>Shades reuse the Duelist work that turned Ancestral Call style clones into an extension of the player. The team hopes to extend it to Mirage Archer and similar effects.</li>
+            <li>Targeting was hard. Shades now attack your target by default so the alpha strike lands. A support gem to spread them out is undecided.</li>
+            <li>When a shade has no target it either swings at air or does nothing, chosen by situation.</li>
+            <li>Dashing through walls was wanted, but pathfinding does not support it yet.</li>
+            <li>Wording the tooltip was a headache: the shade neither "uses" nor "copies" the skill. It is part of your attack.</li>
+          </ul>
+        </div>
+      </details>
+      <details class="more">
+        <summary>More on darkness <a class="ts" href="https://www.youtube.com/watch?v=e9-IgmB8glc&t=1297s">21:37</a></summary>
+        <div class="body">
+          <ul class="pts">
+            <li>Main source: the Engulfed in Darkness debuff. Enemies explode and drop a darkness remnant on death, or when immobilised as you engulf them.</li>
+            <li>Engulf also blinds, giving the class blind without using Shroud.</li>
+            <li>Grim Bargain fuels the large "eclipse" moments in the trailer.</li>
+            <li>Sharing the rage bar saves a UI element and gives rage real competition on stealth builds.</li>
+          </ul>
+        </div>
+      </details>
+      <details class="more">
+        <summary>Blade Vortex, PoE1 versus PoE2 <a class="ts" href="https://www.youtube.com/watch?v=e9-IgmB8glc&t=1440s">24:00</a></summary>
+        <div class="body">
+          <div class="tbl"><table>
+            <thead><tr><th></th><th>PoE1</th><th>PoE2</th></tr></thead>
+            <tbody>
+              <tr><td>Blades expire</td><td>After a duration</td><td>After a number of hits</td></tr>
+              <tr><td>Blade count</td><td>Extra blades abstracted into a damage and speed buff after the first version hurt servers</td><td>Up to 50 truly independent blades</td></tr>
+              <tr><td>Role</td><td>Orbiting spell damage</td><td>Extracts impales, so each blade can carry a different impale upgrade</td></tr>
+            </tbody>
+          </table></div>
+          <p class="note">Hit-limited blades burn out fast inside a pack, which removes the performance problem. The tooltip needed its tab split in two to fit the screen. Blades created before stealth needed a special rule so they still break it.</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="panel">
+      <h2>Ideas that changed or were cut</h2>
+      <div class="legend"><span class="chip evo">Evolved</span> became something that ships <span class="chip shelf">Shelved</span> may return <span class="chip cut">Cut</span> dropped</div>
+      <ul class="ideas">
+        <li><span class="chip evo">Evolved</span><span><b>Confusing monsters into fighting each other.</b> Monster damage barely scratches other monsters. The idea became stealing enemy shadows, then Nightmare: your shades turn into invincible tentacled fiends that scale like totems.</span></li>
+        <li><span class="chip evo">Evolved</span><span><b>Physical dagger spells.</b> They needed attack scaling and attack restrictions, so they became attacks. A hybrid battle mage is saved for later.</span></li>
+        <li><span class="chip shelf">Shelved</span><span><b>Teleporting between shades.</b> You cannot control where shades stand, slow animation fought snappy gameplay, and it filled no gap. "Knifed for now."</span></li>
+        <li><span class="chip shelf">Shelved</span><span><b>Trap meta skill.</b> Traps are weapons now, so socketing other skills into one is unclear. Possibly after release.</span></li>
+        <li><span class="chip shelf">Shelved</span><span><b>Mines.</b> Separate base types meant half your drops were useless. Stealth traps plus the detonate skill already cover the playstyle.</span></li>
+        <li><span class="chip cut">Cut</span><span><b>Power charge interactions.</b> In PoE1 that link came from crit. The Monk already uses power charges on the same attribute.</span></li>
+        <li><span class="chip cut">Cut</span><span><b>Backstab damage by direction.</b> Tried, but you cannot control which way a monster faces.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ================= DUELIST ================= -->
+  <section class="tabpanel" id="p-duel" role="tabpanel" aria-labelledby="t-duel" hidden>
+    <div class="panel">
+      <h2>The blood combo</h2>
+      <div class="flow">
+        <div class="node"><span class="n">1 · Parry</span><span class="d">Off-hand sword parries and marks the enemy as parried.</span></div>
+        <span class="arr" aria-hidden="true"></span>
+        <div class="node"><span class="n">2 · Bloodied Blade</span><span class="d">Hitting a parried enemy explodes and applies bleed.</span></div>
+        <span class="arr" aria-hidden="true"></span>
+        <div class="node"><span class="n">3 · Blood stance</span><span class="d">Holding the skill enters the upgraded stance. Basic slashes now bleed.</span></div>
+        <span class="arr" aria-hidden="true"></span>
+        <div class="node"><span class="n">4 · Hemorrhage</span><span class="d">Compresses the bleed so its damage lands quickly. Blood loss stays.</span></div>
+        <span class="arr" aria-hidden="true"></span>
+        <div class="node"><span class="n">5 · Rending Dash</span><span class="d">Dash through to cash in the remaining blood loss.</span></div>
+      </div>
+      <p class="loop"><b>Skip the parry:</b> spending a frenzy charge enters blood or sand stance without it.</p>
+      <h3>The buried blades combo (medium range)</h3>
+      <div class="flow">
+        <div class="node"><span class="n">1 · Earth skill</span><span class="d">Fissures end in a blade that rises from the ground.</span></div>
+        <span class="arr" aria-hidden="true"></span>
+        <div class="node"><span class="n">2 · Chain lightning</span><span class="d">Any chaining lightning skill, even a bow, electrifies the blades.</span></div>
+        <span class="arr" aria-hidden="true"></span>
+        <div class="node"><span class="n">3 · Blade Plunge</span><span class="d">Explodes every blade at once, enhanced by lightning and stance.</span></div>
+        <span class="arr" aria-hidden="true"></span>
+        <div class="node alt"><span class="n">Sand stance</span><span class="d">Each blade also throws a sand disc. The boss build due for a nerf.</span></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>What Kevin set out to build</h2>
+      <div class="two">
+        <div class="sub-box">
+          <h3>Fixed constraints</h3>
+          <ul class="pts">
+            <li>Swords must feel melee, slashing and piercing</li>
+            <li>Strength and dexterity class, sharing a tree start with Mercenary</li>
+            <li>Cyclone must feel good. It was the first thing he wrote down.</li>
+          </ul>
+        </div>
+        <div class="sub-box">
+          <h3>His own goals</h3>
+          <ul class="pts">
+            <li>Limited elemental presence</li>
+            <li>Flow from one skill into the next</li>
+            <li>Grounded movements a person could plausibly make</li>
+            <li>Mechanics that work outside sword skills</li>
+          </ul>
+        </div>
+      </div>
+      <details class="more">
+        <summary>Design philosophy <a class="ts" href="https://www.youtube.com/watch?v=e9-IgmB8glc&t=2002s">33:22</a></summary>
+        <div class="body">
+          <ul class="pts">
+            <li>A 1.0 release without swords was not an option.</li>
+            <li>Meet player expectations first, then exceed them. The left stick moves you, Escape opens the menu, and a sword should feel like a melee weapon.</li>
+            <li>Complex features are easy to design. Simple ones that feel good are hard.</li>
+            <li>Planning began with a pass over every PoE1 skill usable with a sword, marking each as boring, questionable or worth keeping.</li>
+            <li>Classes are designed "from the sand up", starting with the first skill, because exiles start on a beach with nothing.</li>
+          </ul>
+        </div>
+      </details>
+      <details class="more">
+        <summary>Core mechanics <a class="ts" href="https://www.youtube.com/watch?v=e9-IgmB8glc&t=2529s">42:09</a></summary>
+        <div class="body">
+          <div class="tbl"><table>
+            <thead><tr><th>Mechanic</th><th>What it does</th></tr></thead>
+            <tbody>
+              <tr><td>Bloodied Blade</td><td>First skill. Tap to spin and slash. Hold to enter ready stance. Teaches flow, stance, parry and bleed on the beach.</td></tr>
+              <tr><td>Ready stance</td><td>Changes what your next skill does. Began as a near perfect-timing window and was made far more forgiving.</td></tr>
+              <tr><td>Blood and sand</td><td>Upgraded stances earned by meeting a condition, or by spending a frenzy charge. A nod to PoE1's Blood and Sand.</td></tr>
+              <tr><td>Parry</td><td>Built in when a one-hand sword is in your off hand. Duration and range are being improved. Ready-stance shield parry is a dash that applies the debuff.</td></tr>
+              <tr><td>Buried blades</td><td>Blades left in the ground that other skills electrify or explode. Started as per-skill code, then became one shared system.</td></tr>
+              <tr><td>World Cutter</td><td>Big sword skill that leaves blood ground. Cyclone absorbs it and sends out bleeding blood waves.</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </details>
+      <details class="more">
+        <summary>Keeping it readable <a class="ts" href="https://www.youtube.com/watch?v=e9-IgmB8glc&t=2892s">48:12</a></summary>
+        <div class="body">
+          <ul class="pts">
+            <li>Bloodied Blade alone touches parry, bleed, frenzy charges, ready stance and blood stance. Kevin's claim is that it plays more smoothly than it reads.</li>
+            <li>An early Perforate had five stat tabs running off the screen. That was judged unacceptable.</li>
+            <li>Stances are spent on existing resources such as frenzy charges. Sword-only charges were rejected so skills stay part of the wider game.</li>
+            <li>Skill icons change while you are in ready stance to show which skills will benefit.</li>
+            <li>Keywords should mean the same thing everywhere they appear.</li>
+          </ul>
+        </div>
+      </details>
+      <details class="more">
+        <summary>How the team iterates <a class="ts" href="https://www.youtube.com/watch?v=e9-IgmB8glc&t=3173s">52:53</a></summary>
+        <div class="body">
+          <ul class="pts">
+            <li>Get the first act playable as early as possible to learn whether the class is fun.</li>
+            <li>Lean into what works. When something fails, pivot while reusing as much finished work as possible.</li>
+            <li>"Is it cool?" counts for a lot, even though it never shows up in a spreadsheet.</li>
+            <li>Ready stance drew on Guild Wars assassin combos (starter, middle, finisher).</li>
+            <li>Feedback comes from playtests and threads, inside and outside the studio.</li>
+          </ul>
+        </div>
+      </details>
+    </div>
+
+    <div class="panel">
+      <h2>The melee question</h2>
+      <ul class="pts">
+        <li><b>"Just hit things with swords"</b> echoed around the office for the whole project. Kevin and Jonathan spent hours on what that means.</li>
+        <li><b>Kevin's position:</b> standing right in front of an enemy is not what suits PoE2 or most action RPGs. A class must work on the beach with no gear and later against a god.</li>
+        <li><b>The compromise:</b> short to medium range effects that clearly come from the sword, plus movement built into Rending Dash, Cyclone and both stance skills.</li>
+        <li><b>Variety limit:</b> swinging right-to-left instead of left-to-right is not a new skill. At one point he was told Duelist had hit its "spin limit".</li>
+      </ul>
+      <details class="more">
+        <summary>Supporting systems <a class="ts" href="https://www.youtube.com/watch?v=e9-IgmB8glc&t=3529s">58:49</a></summary>
+        <div class="body">
+          <ul class="pts">
+            <li>Ascendancies were not detailed, beyond a look at the Knight in the keynote.</li>
+            <li>The passive tree gains new stats, clusters and paths.</li>
+            <li>New support gems arrive, with a push for the recommended ones to be good.</li>
+            <li>Duelist work led to wider changes to bleed and support gems.</li>
+          </ul>
+        </div>
+      </details>
+    </div>
+
+    <div class="panel">
+      <h2>Ideas that changed or were cut</h2>
+      <div class="legend"><span class="chip kept">Saved</span> nearly cut, shipped <span class="chip evo">Evolved</span> became something that ships <span class="chip shelf">Shelved</span> may return</div>
+      <ul class="ideas">
+        <li><span class="chip kept">Saved</span><span><b>World Cutter.</b> Began as "Big Sword Slam". Slams belong to other weapons, so it was nearly killed. Kevin kept working on it quietly until it was good.</span></li>
+        <li><span class="chip kept">Saved</span><span><b>Ready stance input.</b> Holding one button while pressing another met internal pushback. Kevin had to fight for it.</span></li>
+        <li><span class="chip evo">Evolved</span><span><b>Real martial stances.</b> European fencing and other styles would have needed huge animation work. The idea shrank into ready stance.</span></li>
+        <li><span class="chip evo">Evolved</span><span><b>Impale on swords.</b> Moved to daggers, which Kevin thinks is the better home.</span></li>
+        <li><span class="chip shelf">Shelved</span><span><b>A physical shield throw.</b> Kevin wanted a real shield, not a spectral copy. That raised questions about losing stats and shield skills mid-flight. Timers, bounce counts and wall bounces all felt wrong up close.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ================= Q&A ================= -->
+  <section class="tabpanel" id="p-qa" role="tabpanel" aria-labelledby="t-qa" hidden>
+    <div class="panel">
+      <h2>Audience questions <a class="ts" href="https://www.youtube.com/watch?v=e9-IgmB8glc&t=3838s">1:03:58</a></h2>
+      <ul class="qa">
+        <li><span class="q">How long does a class take?</span><span>Usually <b>4 to 12 months</b> of active development. Rough plans for every class date back to the start of PoE2. Duelist began shortly after Druid and stalled for weeks while Kevin was moved to other skills.</span></li>
+        <li><span class="q">Is stealth dagger-only?</span><span>Shroud is. Later sources of stealth do not all need daggers, and you can keep a dagger on your second weapon set. James wants Snipe to work well from stealth.</span></li>
+        <li><span class="q">Why lightning on swords and not fire?</span><span>Avoiding elements entirely proved too hard. Lightning fit "fast" best. A frozen sword felt brittle. An oil-coated fire sword is possible later.</span></li>
+        <li><span class="q">How does melee keep up with ranged?</span><span>Mobility. Ranged characters slow down while attacking. Shadow dashes everywhere and Duelist skills have movement built in.</span></li>
+        <li><span class="q">Does the Knight's squire count as a minion?</span><span>Yes. It is a companion you can scale as a minion, and it also works as support for a normal sword build.</span></li>
+        <li><span class="q">How do you track every interaction?</span><span>Mostly by keeping it in their heads, backed by colleagues who catch what they miss.</span></li>
+        <li><span class="q">Will parry hold up in endgame?</span><span>Parry duration and range are improving, Duelist adds an active way to apply it, and frenzy charges let you skip it. Less interactive builds are fine too.</span></li>
+        <li><span class="q">Does stealth work on endgame bosses?</span><span>Yes, no boss is immune. You blind the boss, get <b>2 to 3 seconds</b> to set up, then need something else to do until blind immunity ends.</span></li>
+        <li><span class="q">Was Count Geonor an inspiration?</span><span>Yes. The team reviewed every sword-using monster for movement ideas. A unique with twin ice walls and a sword slam grew alongside World Cutter and shares its animation.</span></li>
+        <li><span class="q">What makes dual wielding worth it?</span><span>Some penalties were reduced. Dual swords grant parry. Many skills land more hits in a single attack: Shadow Extraction hits <b>3 times instead of 2</b>, so 50% more shades.</span></li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h2>The two classes still to come</h2>
+      <div class="two">
+        <div class="sub-box">
+          <h3>Templar</h3>
+          <ul class="pts">
+            <li>James would like to take it</li>
+            <li>Goal: a battle mage that rewards swapping between attacks and spells, something the team says it has not managed before</li>
+          </ul>
+        </div>
+        <div class="sub-box">
+          <h3>Marauder</h3>
+          <ul class="pts">
+            <li>Kevin is happy to take it</li>
+            <li>Rage, berserking and thrown axes</li>
+          </ul>
+        </div>
+      </div>
+      <p class="note">Kevin's favourite piece of work is Cyclone. He was worried it had to be right, and feels it reads as both Cyclone and PoE2.</p>
+    </div>
+  </section>
+
+  <p class="foot">Source: "ExileCon 2026 - Developing the Duelist and Shadow", Path of Exile on YouTube. Summary of auto-generated captions.</p>
+</div>
+
+<script>
+// ---------- chapter data and timeline chart ----------
+(() => {
+  const VID = "https://www.youtube.com/watch?v=e9-IgmB8glc&t=", END = 4871;
+  const CH = [
+    [0, "Shadow class introduction", "shadow"], [152, "Stealth mechanics overview", "shadow"], [360, "Shroud and ease of use", "shadow"],
+    [460, "Stealth and blind interactions", "shadow"], [550, "Shadow development challenges", "shadow"], [798, "Trap system redesign", "shadow"],
+    [840, "Trap and stealth synergy", "shadow"], [1076, "Shade clone mechanics", "shadow"], [1297, "Darkness and impale systems", "shadow"],
+    [1440, "Blade Vortex development", "shadow"], [1702, "Shadow feature exploration", "shadow"],
+    [2002, "Duelist class introduction", "duel"], [2216, "Duelist development planning", "duel"], [2529, "Duelist beach skill design", "duel"],
+    [2892, "Managing combat complexity", "duel"], [3173, "Production and iteration", "duel"], [3286, "Duelist design challenges", "duel"],
+    [3529, "Defining melee in PoE2", "duel"], [3838, "Q&A and final thoughts", "qa"]
+  ];
+  const NAME = { shadow: "Shadow", duel: "Duelist", qa: "Q&A" };
+  const fmt = s => { const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = String(s % 60).padStart(2, "0"); return h ? h + ":" + String(m).padStart(2, "0") + ":" + x : m + ":" + x; };
+  const esc = s => s.replace(/&/g, "&amp;");
+  const rows = CH.map((c, i) => ({ start: c[0], title: c[1], g: c[2], dur: (i + 1 < CH.length ? CH[i + 1][0] : END) - c[0] }));
+  const tl = document.getElementById("tl"), read = document.getElementById("tlRead"), rest = read.textContent;
+  tl.innerHTML = rows.map((r, i) => `<a class="seg g-${r.g}" style="flex:${r.dur} 0 0" href="${VID}${r.start}s" data-i="${i}" aria-label="${esc(r.title)}, starts ${fmt(r.start)}, ${(r.dur / 60).toFixed(1)} minutes"></a>`).join("");
+  const show = e => { const a = e.target.closest(".seg"); if (!a) return; const r = rows[+a.dataset.i]; read.textContent = `${fmt(r.start)} · ${r.title} · ${(r.dur / 60).toFixed(1)} min`; };
+  tl.addEventListener("pointerover", show); tl.addEventListener("focusin", show);
+  tl.addEventListener("pointerleave", () => { read.textContent = rest; });
+  const tot = {}; rows.forEach(r => tot[r.g] = (tot[r.g] || 0) + r.dur);
+  document.getElementById("tlGroups").innerHTML = Object.keys(tot).map(g => `<span class="c-${g}" style="flex:${tot[g]} 0 0">${esc(NAME[g])} <i>${Math.round(tot[g] / 60)} min · ${Math.round(tot[g] / END * 100)}%</i></span>`).join("");
+  document.getElementById("tlAxis").innerHTML = [0, 20, 40, 60, 80].map(m => `<span style="left:${(m * 60 / END * 100).toFixed(2)}%">${m}${m ? "" : " min"}</span>`).join("");
+  const max = Math.max(...rows.filter(r => r.g !== "qa").map(r => r.dur));
+  document.getElementById("chap").innerHTML = rows.map(r => `<a class="ts" href="${VID}${r.start}s">${fmt(r.start)}</a><span>${esc(r.title)}</span><span class="bar"><i class="g-${r.g}" style="width:${Math.min(100, r.dur / max * 100).toFixed(1)}%"></i></span><span class="m">${(r.dur / 60).toFixed(1)}${r.dur > max ? "+" : ""}</span>`).join("");
+})();
+
+// ---------- tabs, build-up intro, open/close transitions (lifted from the Interfierce HUD scaffold) ----------
+(() => {
+  const root = document.documentElement, $ = s => document.querySelector(s);
+  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let onShow = () => {};
+  const tabs = [...document.querySelectorAll(".tab")];
+  function select(t, focus) {
+    tabs.forEach(x => { const on = x === t; x.setAttribute("aria-selected", on); x.tabIndex = on ? 0 : -1; const p = document.getElementById(x.getAttribute("aria-controls")); const was = p.hidden; p.hidden = !on; if (on && was) onShow(p); });
+    if (focus) t.focus();
+  }
+  tabs.forEach((t, i) => {
+    t.tabIndex = i ? -1 : 0;
+    t.addEventListener("click", () => select(t));
+    t.addEventListener("keydown", e => { const d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0; if (d) { e.preventDefault(); select(tabs[(i + d + tabs.length) % tabs.length], true); } });
+  });
+  if (calm || !document.body.animate) return;
+
+  root.classList.add("building");
+  const PANEL = ".panel, .tile, #tabs, .sub-box, .node";
+  const WIRE = ".tl, .duo";
+  function kind(el) {
+    if (el.matches(PANEL)) return "b-frame";
+    if (el.matches(WIRE)) return "b-wire";
+    if (el.matches(".seg, .bar, .duo span")) return "b-fade";
+    if (el.matches("button, .chip, .arr")) return "b-pop";
+    return "b-type";
+  }
+  const ATOM = "button, .chip, .seg, .bar, .arr, h1, h2, h3, summary, li, p, td, th";
+  function collect(el, out, all) {
+    for (const c of el.children) {
+      if (c.matches("script, style, canvas, template") || !c.getClientRects().length) continue;
+      if (!all && c.getBoundingClientRect().top > innerHeight + 40) continue;
+      const atom = c.matches(ATOM) || !c.children.length || [...c.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
+      if (atom || c.matches(PANEL) || c.matches(WIRE)) out.push(c);
+      if (!atom) collect(c, out, all);
+    }
+    return out;
+  }
+  const GLYPHS = "▓▒░<>/\\|=+*#01ΛΞΣΦΨ";
+  function decode(el, delay) {
+    if (el.children.length) return;
+    const txt = el.textContent; if (!txt.trim() || txt.length > 70) return;
+    setTimeout(() => {
+      const s0 = performance.now(), dur = 260 + txt.length * 9;
+      (function tick() {
+        if (!el.isConnected) return;
+        const p = Math.min(1, (performance.now() - s0) / dur), n = Math.floor(p * txt.length);
+        el.textContent = p >= 1 ? txt : txt.slice(0, n) + [...txt.slice(n)].map(ch => ch === " " ? " " : GLYPHS[Math.random() * GLYPHS.length | 0]).join("");
+        if (p < 1) requestAnimationFrame(tick);
+      })();
+    }, Math.max(0, delay));
+  }
+  const clean = el => { el.classList.remove("bld", "b-frame", "b-type", "b-pop", "b-fade", "b-wire"); el.style.animationDelay = ""; };
+  let wires = null;
+  const wireLayer = () => { if (!wires || !wires.isConnected) { wires = document.createElement("div"); wires.id = "wires"; wires.setAttribute("aria-hidden", "true"); document.body.appendChild(wires); } return wires; };
+  function wire(r, d, T) {
+    const cw = document.documentElement.clientWidth; if (r.left < -1 || r.right > cw + 1) return;
+    const w = document.createElement("div"); w.className = "wb";
+    w.style.cssText = `left:${r.left + scrollX}px;top:${r.top + scrollY}px;width:${r.width}px;height:${r.height}px;--d:${d}ms;--t:${T}ms`;
+    w.innerHTML = "<i></i><i></i><i></i><i></i>";
+    wireLayer().appendChild(w); setTimeout(() => w.remove(), Math.max(0, d) + T + 1000);
+  }
+  const isLined = (el, k, cs) => k === "b-frame" || k === "b-wire" || ["Top", "Right", "Bottom", "Left"].every(s => parseFloat(cs["border" + s + "Width"]) > 0);
+  function mark(el, d) {
+    const k = kind(el), r = el.getBoundingClientRect(), cs = getComputedStyle(el);
+    const lined = isLined(el, k, cs);
+    const T = k === "b-frame" ? 560 : k === "b-wire" ? 440 : 300;
+    if (lined && r.width > 4 && r.height > 4) wire(r, d, T);
+    const ed = k === "b-frame" ? d + 90 : lined && k !== "b-wire" ? d + Math.round(T * .55) : d;
+    el.classList.add("bld", k); el.style.animationDelay = ed + "ms";
+    if (k === "b-type") decode(el, d);
+  }
+  function schedule(list, total) {
+    const frames = list.filter(el => el.matches(PANEL)).length, rest = list.length - frames;
+    const FG = Math.min(170, total * .45 / Math.max(1, frames)), st = Math.max(8, Math.min(70, (total - 600 - frames * FG) / Math.max(1, rest)));
+    let t = 0; return list.map(el => { const d = t; t += el.matches(PANEL) ? FG : st; return Math.round(d); });
+  }
+  function buildBlock(b, total = 1700) {
+    b.classList.remove("pend");
+    const list = (b.matches(PANEL) ? [b] : []).concat(collect(b, [], true)), ts = schedule(list, total);
+    list.forEach((el, i) => mark(el, ts[i]));
+    setTimeout(() => list.forEach(clean), (ts[ts.length - 1] || 0) + 1000);
+  }
+  // a tab's page builds itself when it is first shown; blocks below the screen wait for the scroll
+  const io = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); buildBlock(e.target); } }), { rootMargin: "0px 0px -6% 0px" }) : null;
+  const holdLater = scope => {
+    if (!io) return;
+    [...scope.querySelectorAll(":scope > .panel, :scope > .foot")].filter(b => b.getClientRects().length && b.getBoundingClientRect().top > innerHeight + 40).forEach(b => { b.classList.add("pend"); io.observe(b); });
+  };
+  onShow = p => {
+    holdLater(p);
+    [...p.children].filter(b => !b.classList.contains("pend")).forEach((b, i) => setTimeout(() => buildBlock(b, 1300), i * 140));
+  };
+
+  function slide(el, from, to, ms, keep) {
+    return new Promise(res => {
+      el.style.overflow = "hidden"; el.style.transition = "none"; el.style.height = from + "px"; void el.offsetHeight;
+      el.style.transition = `height ${ms}ms cubic-bezier(.2, .7, .2, 1)`; el.style.height = to + "px";
+      setTimeout(() => { if (!keep) el.style.height = el.style.overflow = el.style.transition = ""; res(); }, ms + 30);
+    });
+  }
+  const pieces = (box, skip) => collect(box, [], true).filter(el => !skip || !skip.contains(el));
+  const glBuild = (box, fromH = 0, skip) => {
+    const to = box.offsetHeight, list = pieces(box, skip), ts = schedule(list, 1300);
+    list.forEach((el, i) => mark(el, ts[i] + 60));
+    slide(box, fromH, to, Math.min(420, 160 + to * .5));
+    setTimeout(() => list.forEach(clean), (ts[ts.length - 1] || 0) + 1100);
+  };
+  function scramble(el, delay) {
+    if (el.children.length) return;
+    const txt = el.textContent; if (!txt.trim() || txt.length > 70) return;
+    el._txt = txt;
+    setTimeout(() => {
+      const s0 = performance.now(), dur = 240;
+      (function tick() {
+        if (!el.isConnected || el._txt == null) return;
+        const p = Math.min(1, (performance.now() - s0) / dur), keep = Math.floor((1 - p) * txt.length);
+        el.textContent = txt.slice(0, keep) + [...txt.slice(keep)].map(ch => ch === " " ? " " : GLYPHS[Math.random() * GLYPHS.length | 0]).join("");
+        if (p < 1) requestAnimationFrame(tick);
+      })();
+    }, Math.max(0, delay));
+  }
+  const glRestore = list => list.forEach(el => { el.classList.remove("b-out"); el.style.animationDelay = ""; if (el._txt != null) { el.textContent = el._txt; el._txt = null; } });
+  const glUnbuild = (box, toH = 0, skip) => new Promise(res => {
+    const list = pieces(box, skip).reverse(), n = Math.max(1, list.length);
+    const st = Math.max(10, Math.min(42, 620 / n)), cw = document.documentElement.clientWidth;
+    const br = box.getBoundingClientRect(), sx = scrollX, sy = scrollY;
+    const layer = document.createElement("div"); layer.className = "evap"; layer.setAttribute("aria-hidden", "true");
+    layer.style.cssText = "width:" + cw + "px;height:" + document.documentElement.scrollHeight + "px";
+    document.body.appendChild(layer);
+    let puffs = 0;
+    list.forEach((el, i) => {
+      const d = Math.round(i * st), k = kind(el), r = el.getBoundingClientRect(), cs = getComputedStyle(el);
+      const lined = isLined(el, k, cs);
+      clean(el);
+      if (lined && r.width > 4 && r.height > 4 && r.left >= -1 && r.right <= cw + 1) {
+        const T = k === "b-frame" ? 420 : 260, w = document.createElement("div"); w.className = "wb rev";
+        w.style.cssText = "left:" + (r.left + sx) + "px;top:" + (r.top + sy) + "px;width:" + r.width + "px;height:" + r.height + "px;--d:" + d + "ms;--t:" + T + "ms";
+        w.innerHTML = "<i></i><i></i><i></i><i></i>"; wireLayer().appendChild(w); setTimeout(() => w.remove(), d + T + 500);
+      }
+      if (k === "b-type") scramble(el, d);
+      el.style.animationDelay = (d + 60) + "ms"; el.classList.add("b-out");
+      if (r.width > 2 && r.height > 2 && r.bottom > 0 && r.top < innerHeight && puffs < 160) {
+        const m = Math.min(5, 2 + Math.round(r.width / 140));
+        for (let j = 0; j < m; j++, puffs++) {
+          const p = document.createElement("i"), sz = 2 + Math.random() * 4, x = r.left + sx + Math.random() * r.width, y = r.top + sy + Math.random() * r.height;
+          p.style.cssText = "width:" + sz + "px;height:" + sz + "px;margin:" + (-sz / 2) + "px 0 0 " + (-sz / 2) + "px";
+          layer.appendChild(p);
+          p.animate([
+            { transform: "translate(" + x.toFixed(0) + "px," + y.toFixed(0) + "px) scale(1)", opacity: 0 },
+            { opacity: .95, offset: .2 },
+            { transform: "translate(" + (x + (Math.random() - .5) * 40).toFixed(0) + "px," + (y - 24 - Math.random() * 46).toFixed(0) + "px) scale(.2)", opacity: 0 }
+          ], { duration: 520 + Math.random() * 380, delay: d + 90 + Math.random() * 80, easing: "cubic-bezier(.2,.6,.3,1)", fill: "both" });
+        }
+      }
+    });
+    setTimeout(() => {
+      const h = box.offsetHeight, line = document.createElement("b"), top = br.top + sy;
+      line.style.cssText = "left:" + Math.max(0, br.left + sx) + "px;width:" + Math.min(br.width, cw) + "px;top:0";
+      layer.appendChild(line);
+      line.animate([{ transform: "translateY(" + (top + h) + "px)", opacity: 1 }, { transform: "translateY(" + (top + toH) + "px)", opacity: .2 }], { duration: 320, easing: "cubic-bezier(.4,0,.2,1)", fill: "forwards" });
+      slide(box, h, toH, 320, true).then(() => { layer.remove(); res(list); });
+    }, n * st + 260);
+  });
+  const closedH = (d, sm) => { const cs = getComputedStyle(d); return sm.offsetHeight + parseFloat(cs.paddingTop) + parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth); };
+  document.addEventListener("click", e => {
+    if (e.target.closest && e.target.closest("summary a")) return;   // timestamp links inside a summary just open the video
+    const sm = e.target.closest && e.target.closest("details.more > summary"); if (!sm) return;
+    const d = sm.parentElement; if (d._anim) { e.preventDefault(); return; }
+    if (!d.open) { d._user = true; return; }
+    e.preventDefault(); d._anim = true;
+    glUnbuild(d, closedH(d, sm), sm).then(list => {
+      d.open = false; d.style.height = d.style.overflow = d.style.transition = "";
+      glRestore(list); d._anim = false;
+    });
+  });
+  document.addEventListener("toggle", e => {
+    const d = e.target; if (!d.matches || !d.matches("details.more") || !d.open || !d._user) return;
+    d._user = false; const sm = d.querySelector(":scope > summary"); glBuild(d, closedH(d, sm), sm);
+  }, true);
+
+  function build() {
+    const wrap = $(".wrap");
+    holdLater(document.getElementById("p-over"));
+    const els = collect(wrap, []).filter(el => !el.closest(".pend"));
+    const ts = schedule(els, 4200);
+    els.forEach((el, i) => {
+      mark(el, ts[i]);
+      if (el.matches(".tile b[data-n]")) {   // key numbers count up
+        const target = +el.dataset.n, txt = el.textContent;
+        setTimeout(() => { const s0 = performance.now(); (function tick() { const k = Math.min(1, (performance.now() - s0) / 700); el.textContent = Math.round(target * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(tick); else el.textContent = txt; })(); }, ts[i]);
+      }
+    });
+    root.classList.remove("building");
+    setTimeout(() => els.forEach(clean), (ts[ts.length - 1] || 0) + 1100);
+  }
+  const go = () => { try { build(); } catch (e) { root.classList.remove("building"); } };
+  (document.fonts && document.fonts.ready ? Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 900))]) : Promise.resolve()).then(go, go);
+})();
+
+// ---------- Vector storm background: data streaks on a 24px grid that turn at 45/90 degrees, kept to the sides ----------
+(() => {
+  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const cv = document.createElement("canvas"); cv.id = "vecFx"; cv.setAttribute("aria-hidden", "true"); document.body.prepend(cv);
+  const g = cv.getContext("2d"), G = 24, DIRS = [[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1],[0,-1],[1,-1]];
+  let maxP = 0, W = 0, H = 0, d = 1, ps = [], raf = 0; const rgb = "0, 240, 255";
+  const rnd = (a, b) => a + Math.random() * (b - a), pick = a => a[Math.floor(Math.random() * a.length)];
+  const edgeX = () => { const t = Math.pow(Math.random(), 2.2) * .5; return (Math.random() < .5 ? t : 1 - t) * W; };
+  const DOWN = [1, 2, 3];
+  function spawn(p = {}, anywhere = false) {
+    p.x = Math.floor(edgeX() / G) * G; p.on = true; p.y = anywhere ? Math.floor(rnd(0, H / G)) * G : -G * Math.floor(rnd(0, 6));
+    p.dir = pick(DOWN); p.sp = pick([3, 4, 6, 8]); p.cells = Math.floor(rnd(1, 5)); p.moved = 0; p.child = false;
+    p.w = pick([1, 1, 1.5, 2]); p.hot = Math.random() < .25; p.life = Math.floor(rnd(200, 900));
+    return p;
+  }
+  function fit() {
+    d = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = Math.min(innerHeight, 2400); cv.width = W * d; cv.height = H * d;
+    g.setTransform(d, 0, 0, d, 0, 0); const n = Math.min(55, Math.round(W * H / 28000));
+    ps = Array.from({ length: n }, () => spawn({}, true)); maxP = n;
+  }
+  function stepAll() {
+    g.globalCompositeOperation = "destination-out"; g.fillStyle = "rgba(0,0,0,.085)"; g.fillRect(0, 0, W, H);
+    g.globalCompositeOperation = "lighter"; g.lineCap = "square";
+    for (const p of ps) {
+      const [dx, dy] = DIRS[p.dir], nx = p.x + dx * p.sp, ny = p.y + dy * p.sp;
+      if (p.on !== false) {
+        g.strokeStyle = `rgba(${rgb}, ${p.hot ? .85 : .38})`; g.lineWidth = p.w;
+        g.beginPath(); g.moveTo(p.x, p.y); g.lineTo(nx, ny); g.stroke();
+        if (p.hot) { g.fillStyle = "rgba(255,255,255,.85)"; g.fillRect(nx - 1.5, ny - 1.5, 3, 3); }
+      }
+      p.x = nx; p.y = ny; p.moved += p.sp; p.life--;
+      if (p.moved >= G * p.cells && p.x % G === 0 && p.y % G === 0) {
+        const old = p.dir; p.dir = pick(DOWN.filter(x => x !== old)); p.cells = Math.floor(rnd(1, 5)); p.moved = 0;
+        p.on = p.on === false ? Math.random() < .75 : Math.random() > .32;
+        if (ps.length < maxP * 1.6 && Math.random() < .08)
+          ps.push({ x: p.x, y: p.y, dir: pick(DOWN.filter(x => x !== p.dir)), sp: p.sp, cells: Math.floor(rnd(1, 3)), moved: 0, w: 1, hot: p.hot, life: Math.floor(rnd(20, 70)), child: true });
+        if (p.on && Math.random() < .12) { g.strokeStyle = `rgba(${rgb}, .6)`; g.lineWidth = 1; g.strokeRect(p.x - 3, p.y - 3, 6, 6); }
+      }
+      if (p.life <= 0 || p.x < -G || p.y < -G * 8 || p.x > W + G || p.y > H + G) { if (p.child) p.dead = true; else spawn(p); }
+    }
+    if (ps.some(p => p.dead)) ps = ps.filter(p => !p.dead);
+  }
+  function frame() { raf = requestAnimationFrame(frame); if (!document.hidden) stepAll(); }
+  fit();
+  if (calm) { for (let i = 0; i < 120; i++) stepAll(); return; }
+  addEventListener("resize", fit);
+  frame();
+})();
+</script>
+</body>
+</html>
